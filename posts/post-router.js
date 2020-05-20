@@ -34,6 +34,7 @@ router.get('/', (req, res) => {
     }
 });
 
+
 router.get('/:id', async (req, res) => {
     const { id } = req.params
     try {
@@ -44,16 +45,50 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.post('/', (req, res) => {
 
+router.post('/', async (req, res) => {
+    const postData = req.body;
+    try {
+        const numPosts = await knex('posts').insert(postData);
+        res.status(201).json(numPosts);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({message: 'problem with db', error:err});
+    }
 });
 
-router.put('/:id', (req, res) => {
 
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const newPost = req.body;
+    try {
+        const count = await knex('posts').update(newPost).where({ id });
+        if (count) {
+            res.json({ updated: count });
+        } else {
+            res.status(404).json({ message: 'invalid id' });
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'problem with db', error: err });
+    }
 });
+
 
 router.delete('/:id', (req, res) => {
+    const { id } = req.params
 
+    try {
+        const count = await knex('posts').del().where({ id });
+        if (count) {
+            res.json({deleted: count});
+        } else {
+            res.status(404).json({ message: 'Invalid supplied id.'});
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'Problem with db.', error: err});
+    }
 });
 
 module.exports = router;
